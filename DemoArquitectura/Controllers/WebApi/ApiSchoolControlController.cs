@@ -28,6 +28,7 @@ namespace DemoArquitectura.Web.Controllers.WebApi
         }
 
         [HttpPost("AddStudent")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<StudentEntity> AddStudentAsync(StudentEntity studentEntity)
         {
             var sudent = await studentBusiness.AddStudentAsync(studentEntity);
@@ -35,6 +36,7 @@ namespace DemoArquitectura.Web.Controllers.WebApi
         }
 
         [HttpPost("UpdateStudent")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<StudentEntity> UpdateStudentAsync(StudentEntity studentEntity)
         {
             var sudent = await studentBusiness.UpdateStudentAsync(studentEntity);

@@ -3,6 +3,9 @@ using DemoArquitectura.Business.SchoolControl;
 using DemoArquitectura.Data;
 using DemoArquitectura.Data.Interfaces.SchoolControl;
 using DemoArquitectura.Data.Repositories.SchoolControl;
+using DemoArquitectura.Web.Data;
+using DemoArquitectura.Web.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -12,10 +15,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace DemoArquitectura
@@ -35,8 +40,27 @@ namespace DemoArquitectura
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                 options.TokenValidationParameters = new TokenValidationParameters
+                 {
+                     ValidateIssuer = true,
+                     ValidateAudience = true,
+                     ValidateLifetime = true,
+                     ValidateIssuerSigningKey = true,
+                     ValidIssuer = "ipsos.com",
+                     ValidAudience = "ipsos.com",
+                     IssuerSigningKey = new SymmetricSecurityKey(
+                     Encoding.UTF8.GetBytes("imQgm6us3ReiA3x5fs65q9ZEokUDxnJrxPYLRm0")),
+                     ClockSkew = TimeSpan.Zero
+                 });
+
+
+
             services.AddControllersWithViews();
             services.AddRazorPages();
 
@@ -80,6 +104,9 @@ namespace DemoArquitectura
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseAuthentication();
+            SeedData.Initialize(app.ApplicationServices);
 
             app.UseStaticFiles();
 
