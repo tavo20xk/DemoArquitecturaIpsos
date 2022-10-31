@@ -5,7 +5,9 @@ using DemoArquitectura.Data.Interfaces.SchoolControl;
 using DemoArquitectura.Data.Repositories.SchoolControl;
 using DemoArquitectura.Web.Data;
 using DemoArquitectura.Web.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -42,10 +44,10 @@ namespace DemoArquitectura
                     Configuration.GetConnectionString("DefaultConnection")));
             services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddEntityFrameworkStores<ApplicationDbContext>();            
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+            services.AddAuthentication()                
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                  options.TokenValidationParameters = new TokenValidationParameters
                  {
                      ValidateIssuer = true,
@@ -59,7 +61,15 @@ namespace DemoArquitectura
                      ClockSkew = TimeSpan.Zero
                  });
 
-
+            services.AddAuthorization(options =>
+            {
+                var defaultAuthorizationBuilder = new AuthorizationPolicyBuilder(
+                    JwtBearerDefaults.AuthenticationScheme
+                    );
+                
+                defaultAuthorizationBuilder = defaultAuthorizationBuilder.RequireAuthenticatedUser();
+                options.AddPolicy("JwtPolicyDemo", defaultAuthorizationBuilder.Build());                
+            });
 
             services.AddControllersWithViews();
             services.AddRazorPages();
@@ -67,7 +77,7 @@ namespace DemoArquitectura
             AddSwagger(services);
 
             services.AddTransient<IStudentBusiness, StudentBusiness>();
-            services.AddTransient<IStudentRepository, StudentRepository>();
+            services.AddTransient<IStudentRepository, StudentRepository>();            
 
             services.Configure<IdentityOptions>(options =>
             {

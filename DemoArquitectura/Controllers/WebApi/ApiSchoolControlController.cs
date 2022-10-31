@@ -28,7 +28,8 @@ namespace DemoArquitectura.Web.Controllers.WebApi
         }
 
         [HttpPost("AddStudent")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [Authorize(Policy = "JwtPolicyDemo")]
         public async Task<StudentEntity> AddStudentAsync(StudentEntity studentEntity)
         {
             var sudent = await studentBusiness.AddStudentAsync(studentEntity);
